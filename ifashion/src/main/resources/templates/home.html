@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>search for fashion products</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Ensure footer is always at the bottom */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex: 1;
+            margin-top: 80px;
+        }
+
+        #modal-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        #image-modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+<header class="bg-white shadow fixed w-full z-10">
+    <div class="container mx-auto flex justify-between items-center py-4 px-6">
+        <div class="flex items-center">
+                <span class="text-2xl font-bold text-black">
+                    <span class="text-red-500">Fashion</span>
+                    <span class="text-black">Products</span>
+                </span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="/logout-confirmation" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</a>
+        </div>
+    </div>
+</header>
+<main class="container mx-auto text-center py-10">
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Search Your Perfect Fashion</h1>
+    <p class="text-lg text-gray-600 mb-20">Explore a wide range of fashion products effortlessly. Start by searching your favorite styles or uploading an image to refine your results.</p>
+    <div class="inline-block">
+    <label for="upload" class="bg-red-500 text-white text-lg px-8 py-4 rounded-full hover:bg-red-600 cursor-pointer">Upload an Image</label>
+        <input id="upload" type="file" accept="image/*" class="hidden" onchange="previewImage(event)">
+    </div>
+
+    <!-- Section to display uploaded image preview -->
+    <div id="image-preview" class="mt-8 hidden">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Upload</h2>
+        <img id="preview" src="" alt="Uploaded Fashion" class="mx-auto rounded shadow-lg" style="max-width: 300px;">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4 mt-6">Recommended Products Based on Your Search</h2>
+        <p class="text-gray-600 text-center mb-4">Here are the top matches for your uploaded fashion item:</p>
+        <div id="recommendation-section" class="flex flex-wrap justify-center mt-4"></div>
+    </div>
+</main>
+
+<!-- Modal for displaying image -->
+<div id="image-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-75 hidden z-50">
+    <div class="relative bg-white rounded-lg p-4">
+        <button id="close-modal" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modal-image" src="" alt="Enlarged Image" class="rounded-lg max-w-screen-md">
+    </div>
+</div>
+
+<footer class="bg-gray-900 text-white py-6">
+    <div class="container mx-auto text-center">
+        <p>&copy; 2024 Fashion Recommendation | Choose Your Style</p>
+    </div>
+</footer>
+
+<script>
+    function previewImage(event) {
+        const previewContainer = document.getElementById("image-preview");
+        const preview = document.getElementById("preview");
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        previewContainer.classList.remove("hidden");
+
+        // Call function to upload and get recommendations
+        uploadImageAndGetRecommendations(event.target.files[0]);
+    }
+
+    async function uploadImageAndGetRecommendations(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch("/send-to-flask", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                displayRecommendations(data.recommended_images);
+            } else {
+                console.error(data.error);
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+        }
+    }
+
+    function displayRecommendations(recommendations) {
+        const recommendationSection = document.getElementById("recommendation-section");
+        recommendationSection.innerHTML = "";
+
+        if (recommendations.length === 0) {
+            recommendationSection.innerHTML = "<p class='text-red-500'>Tidak ada rekomendasi ditemukan.</p>";
+            return;
+        }
+
+        recommendations.forEach(imagePath => {
+            const productDiv = document.createElement("div");
+            productDiv.classList.add("mt-4", "mx-2", "flex", "flex-col", "items-center");
+
+            const productImage = document.createElement("img");
+            productImage.src = "http://127.0.0.1:5000/" + imagePath;
+            productImage.classList.add("rounded", "shadow-lg", "w-48", "h-auto", "cursor-pointer");
+            productImage.alt = "Recommended Product";
+
+            // Tambahkan event listener untuk menampilkan modal
+            productImage.onclick = () => showImageModal(imagePath);
+
+            productDiv.appendChild(productImage);
+            recommendationSection.appendChild(productDiv);
+        });
+    }
+
+    // Fungsi untuk menampilkan modal
+    function showImageModal(imagePath) {
+        const modal = document.getElementById("image-modal");
+        const modalImage = document.getElementById("modal-image");
+
+        modalImage.src = imagePath;
+        modalImage.style.width = "auto";
+        modalImage.style.height = "80vh";
+
+        modal.style.display = "flex";
+    }
+
+    // Event listener untuk menutup modal
+    document.getElementById("close-modal").onclick = () => {
+        document.getElementById("image-modal").style.display = "none";
+    };
+</script>
+</body>
+</html>

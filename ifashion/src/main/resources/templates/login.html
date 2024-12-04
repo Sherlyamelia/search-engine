@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link th:href="@{/login.css}" rel="stylesheet" />
+</head>
+<body>
+<div class="login-container">
+    <h2>Login</h2>
+    <div th:if="${errorMessage != null and errorMessage != ''}" class="error-message">
+        <p th:text="${errorMessage}"></p>
+    </div>
+    <form action="/login" method="POST">
+        <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Login</button>
+        <p class="redirect">Belum punya akun? <a href="/register">Register</a></p>
+    </form>
+</div>
+</body>
+</html>
