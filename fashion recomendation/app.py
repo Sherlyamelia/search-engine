@@ -68,6 +68,9 @@ def recommend():
     recommended_images = [filenames[idx] for idx in indices.flatten()]
 
     recommended_images = [image.replace("\\", "/") for image in recommended_images]
+    # Menghapus file yang diupload setelah selesai diproses
+    os.remove(upload_path)
+    
     return jsonify({'recommended_images': recommended_images})
 
 # Route untuk menyajikan gambar statis
