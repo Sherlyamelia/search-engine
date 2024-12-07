@@ -17,12 +17,13 @@ public class RecommendationController {
 
     @PostMapping("/send-to-flask")
     public String sendToFlask(@RequestParam("file") MultipartFile file) {
+        File tempFile = null;
         try {
             // Menggunakan RestTemplate untuk mengirim file ke Flask
             RestTemplate restTemplate = new RestTemplate();
 
             // Convert file ke file sementara
-            File tempFile = convertMultipartFileToFile(file);
+            tempFile = convertMultipartFileToFile(file);
 
             // Menyiapkan multipart body untuk mengirim file
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -40,16 +41,14 @@ public class RecommendationController {
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
             System.out.println("Flask Response: " + response.getBody());
 
-            // Menghapus file sementara setelah digunakan
+            // Menghapus file sementara setelah selesai digunakan
             tempFile.delete();
 
-            // Mengembalikan response dari Flask
+            // Mengembalikan response
             return response.getBody();
         } catch (IOException e) {
-            // Menangani error terkait dengan file
             return "Error: File handling error - " + e.getMessage();
         } catch (Exception e) {
-            // Menangani error umum
             return "Error: " + e.getMessage();
         }
     }
@@ -59,7 +58,6 @@ public class RecommendationController {
         // Menggunakan ekstensi .tmp untuk file sementara
         File tempFile = File.createTempFile("upload-", ".tmp");
         file.transferTo(tempFile);
-        tempFile.deleteOnExit(); // Menghapus file sementara ketika aplikasi selesai
         return tempFile;
     }
 }
